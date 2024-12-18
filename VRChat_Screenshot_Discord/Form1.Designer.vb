@@ -36,16 +36,16 @@ Partial Class Form1
         Label1.AutoSize = True
         Label1.Location = New Point(12, 9)
         Label1.Name = "Label1"
-        Label1.Size = New Size(122, 15)
+        Label1.Size = New Size(143, 15)
         Label1.TabIndex = 0
-        Label1.Text = "VRChat画像フォルダパス"
+        Label1.Text = "VRChat 이미지 폴더 경로"
         ' 
         ' Label2
         ' 
         Label2.AutoSize = True
         Label2.Location = New Point(12, 53)
         Label2.Name = "Label2"
-        Label2.Size = New Size(82, 15)
+        Label2.Size = New Size(83, 15)
         Label2.TabIndex = 1
         Label2.Text = "Webhook URL"
         ' 
@@ -79,7 +79,7 @@ Partial Class Form1
         Button1.Name = "Button1"
         Button1.Size = New Size(75, 23)
         Button1.TabIndex = 5
-        Button1.Text = "監視開始"
+        Button1.Text = "감시 시작"
         Button1.UseVisualStyleBackColor = True
         ' 
         ' Form1
@@ -95,7 +95,7 @@ Partial Class Form1
         Controls.Add(Label1)
         Icon = CType(resources.GetObject("$this.Icon"), Icon)
         Name = "Form1"
-        Text = "VRChat写真をDiscordにアップ"
+        Text = "VRChat 사진을 Discord에 업로드"
         ResumeLayout(False)
         PerformLayout()
     End Sub

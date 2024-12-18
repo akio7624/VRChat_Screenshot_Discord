@@ -10,7 +10,7 @@ Public Class Form1
     Private httpClient As HttpClient = New HttpClient()
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        ' 設定値の読み込み
+        ' 설정값 불러오기
         TextBox1.Text = ConfigurationManager.AppSettings("FolderPath")
         TextBox2.Text = ConfigurationManager.AppSettings("WebhookUrl")
     End Sub
@@ -20,20 +20,20 @@ Public Class Form1
         Dim webhookUrl As String = TextBox2.Text
 
         If String.IsNullOrWhiteSpace(folderPath) OrElse String.IsNullOrWhiteSpace(webhookUrl) Then
-            MessageBox.Show("フォルダーのパスとWebhook URLを入力してください。")
+            MessageBox.Show("폴더 경로와 Webhook URL을 입력해주세요.")
             Return
         End If
 
         If Not Directory.Exists(folderPath) Then
-            MessageBox.Show("指定されたフォルダーが存在しません。")
+            MessageBox.Show("지정된 폴더가 존재하지 않습니다.")
             Return
         End If
 
-        ' 設定値の保存
+        ' 설정값 저장
         SaveSettings("FolderPath", folderPath)
         SaveSettings("WebhookUrl", webhookUrl)
 
-        ' ファイル監視の設定
+        ' 파일 감시 설정
         watcher = New FileSystemWatcher()
         watcher.Path = folderPath
         watcher.Filter = "*.png"
@@ -42,23 +42,23 @@ Public Class Form1
         AddHandler watcher.Created, AddressOf OnNewImageCreated
         watcher.EnableRaisingEvents = True
 
-        InvokeIfRequired(Sub() ListBox1.Items.Add("監視を開始しました: " & folderPath))
+        InvokeIfRequired(Sub() ListBox1.Items.Add("감시를 시작했습니다: " & folderPath))
     End Sub
 
     Private Sub OnNewImageCreated(sender As Object, e As FileSystemEventArgs)
-        ' 画像が追加された際にログファイルを確認し、ワールド名を抽出
+        ' 이미지가 추가되었을 때 로그 파일을 확인하고 월드 이름 추출
         Try
             Dim baseLogFolder As String = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).Replace("Local", "LocalLow"), "VRChat", "VRChat")
 
             If Not Directory.Exists(baseLogFolder) Then
-                InvokeIfRequired(Sub() ListBox1.Items.Add("ログフォルダーが見つかりません: " & baseLogFolder))
+                InvokeIfRequired(Sub() ListBox1.Items.Add("로그 폴더를 찾을 수 없습니다: " & baseLogFolder))
                 Return
             End If
 
             Dim logFiles = Directory.GetFiles(baseLogFolder, "output_log_*.txt", SearchOption.AllDirectories)
 
             If logFiles.Length = 0 Then
-                InvokeIfRequired(Sub() ListBox1.Items.Add("ログファイルが見つかりません。"))
+                InvokeIfRequired(Sub() ListBox1.Items.Add("로그 파일을 찾을 수 없습니다."))
                 Return
             End If
 
@@ -71,13 +71,13 @@ Public Class Form1
                 End If
             End If
         Catch ex As Exception
-            InvokeIfRequired(Sub() ListBox1.Items.Add("エラー: " & ex.Message))
+            InvokeIfRequired(Sub() ListBox1.Items.Add("오류: " & ex.Message))
         End Try
     End Sub
 
     Private Function ExtractWorldNameFromLog(logFilePath As String) As String
         Try
-            ' 読み取り専用でファイルを開く
+            ' 읽기 전용으로 파일 열기
             Using fs As New FileStream(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
                 Using reader As New StreamReader(fs)
                     Dim lines = reader.ReadToEnd().Split(Environment.NewLine)
@@ -86,7 +86,7 @@ Public Class Form1
                             Dim match = Regex.Match(line, "Entering Room: (.+)")
                             If match.Success Then
                                 Dim worldName = match.Groups(1).Value
-                                InvokeIfRequired(Sub() ListBox1.Items.Add("ワールド名を検出: " & worldName))
+                                InvokeIfRequired(Sub() ListBox1.Items.Add("월드 이름 감지: " & worldName))
                                 Return worldName
                             End If
                         End If
@@ -94,7 +94,7 @@ Public Class Form1
                 End Using
             End Using
         Catch ex As Exception
-            InvokeIfRequired(Sub() ListBox1.Items.Add("ログ解析中のエラー: " & ex.Message))
+            InvokeIfRequired(Sub() ListBox1.Items.Add("로그 분석 중 오류: " & ex.Message))
         End Try
 
         Return String.Empty
@@ -104,15 +104,15 @@ Public Class Form1
         Try
             Dim captureTime As String = File.GetCreationTime(imagePath).ToString("yyyy-MM-dd HH:mm:ss")
 
-            ' JSON形式で送信内容を構築
+            ' JSON 형식으로 전송 내용 구성
             Dim jsonPayload As New With {
-                Key .content = "新しい画像がアップロードされました。",
+                Key .content = "새로운 이미지가 업로드되었습니다.",
                 Key .embeds = New Object() {
                     New With {
-                        Key .title = "画像情報",
+                        Key .title = "이미지 정보",
                         Key .fields = New Object() {
-                            New With {Key .name = "ワールド名", Key .value = worldName, Key .inline = True},
-                            New With {Key .name = "撮影日時", Key .value = captureTime, Key .inline = True}
+                            New With {Key .name = "월드 이름", Key .value = worldName, Key .inline = True},
+                            New With {Key .name = "촬영 일시", Key .value = captureTime, Key .inline = True}
                         }
                     }
                 }
@@ -121,7 +121,7 @@ Public Class Form1
             Dim jsonString As String = JsonConvert.SerializeObject(jsonPayload)
             Dim content = New StringContent(jsonString, Encoding.UTF8, "application/json")
 
-            ' 画像を添付する
+            ' 이미지를 첨부
             Dim boundary As String = "----WebKitFormBoundary" & DateTime.Now.Ticks.ToString("x")
             Dim multipartContent = New MultipartFormDataContent(boundary)
             multipartContent.Add(content, "payload_json")
@@ -129,12 +129,12 @@ Public Class Form1
 
             Dim response = Await httpClient.PostAsync(webhookUrl, multipartContent)
             If response.IsSuccessStatusCode Then
-                InvokeIfRequired(Sub() ListBox1.Items.Add("Discordに送信成功: " & worldName))
+                InvokeIfRequired(Sub() ListBox1.Items.Add("Discord로 전송 성공: " & worldName))
             Else
-                InvokeIfRequired(Sub() ListBox1.Items.Add("Discord送信失敗: " & response.StatusCode))
+                InvokeIfRequired(Sub() ListBox1.Items.Add("Discord 전송 실패: " & response.StatusCode))
             End If
         Catch ex As Exception
-            InvokeIfRequired(Sub() ListBox1.Items.Add("Discord送信エラー: " & ex.Message))
+            InvokeIfRequired(Sub() ListBox1.Items.Add("Discord 전송 오류: " & ex.Message))
         End Try
     End Sub
 
@@ -155,5 +155,9 @@ Public Class Form1
         End If
         config.Save(ConfigurationSaveMode.Modified)
         ConfigurationManager.RefreshSection("appSettings")
+    End Sub
+
+    Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click
+
     End Sub
 End Class
